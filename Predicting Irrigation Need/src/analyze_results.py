@@ -161,6 +161,17 @@ def render_approach_memory(results: pl.DataFrame, preferred: pl.DataFrame, metri
             f"{row['status'].lower()} | {row['description']} | run `{row['run_id']}`"
         )
     lines.append("")
+
+    ideas_path = ARTIFACT_DIR / "ideas.md"
+    lines.extend(["## Ideas for Next Experiments", ""])
+    if ideas_path.exists():
+        for idea_line in ideas_path.read_text(encoding="utf-8").strip().splitlines():
+            if idea_line.strip() and not idea_line.startswith("#"):
+                lines.append(idea_line)
+    else:
+        lines.append("- No ideas logged yet. Add them to `artifacts/ideas.md`.")
+    lines.append("")
+
     return "\n".join(lines)
 
 

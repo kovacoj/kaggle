@@ -20,6 +20,7 @@ The key difference from LLM training repos is that the agent must understand the
 - `results.tsv` — auto-appended experiment log.
 - `history/` — archived per-run snapshots.
 - `artifacts/approach_memory.md` — generated memory of tried approaches and their outcomes.
+- `artifacts/ideas.md` — agent-editable list of experiment ideas. Append new ideas; mark them `[tried]` once tested.
 - `DIARY.md` — human-readable research notes.
 - `DOCKER.md` and `run_agent_container.sh` — optional container guardrails.
 
@@ -51,7 +52,7 @@ uv run python src/benchmark.py describe
 uv run python src/profile_data.py > logs/profile.log 2>&1
 ```
 
-7. Read `artifacts/data_profile.md` and `artifacts/approach_memory.md` before changing `src/experiment.py`.
+7. Read `artifacts/data_profile.md`, `artifacts/approach_memory.md`, and `artifacts/ideas.md` before changing `src/experiment.py`.
 8. Run the baseline once on `smoke`:
 
 ```bash
@@ -92,7 +93,8 @@ uv run python src/analyze_results.py
 
 Repeat until interrupted:
 
-1. Re-read `artifacts/data_profile.md` and inspect the current branch and last winning commit.
+1. Re-read `artifacts/data_profile.md` and `artifacts/approach_memory.md` — compare the best scores there against your new idea to avoid repeating discarded approaches.
+2. Check `artifacts/ideas.md` for untried experiment ideas. Pick one or add your own. Mark it `[tried]` when you start.
 2. Make one experiment-sized change in `src/experiment.py`.
    Update `experiment.APPROACH` and `experiment.DESCRIPTION` so the idea is logged clearly.
 3. Create a commit for that candidate.
@@ -116,7 +118,7 @@ tail -n 50 logs/run.log
 
 7. Review the auto-recorded row in `results.tsv` and the archived snapshot in `history/<run_id>/`.
 8. Update the `status` in `results.tsv` to `keep`, `discard`, or `crash` after the decision.
-9. Refresh the analysis outputs and approach memory:
+9. Refresh the analysis outputs, approach memory, and ideas:
 
 ```bash
 uv run python src/analyze_results.py

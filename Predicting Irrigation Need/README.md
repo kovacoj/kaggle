@@ -1,4 +1,16 @@
-Predicting Irrigation Need
+# Predicting Irrigation Need
+
+## Current Benchmark
+
+This section should stay short and factual. `src/analyze_results.py` can refresh it from `results.tsv` when `README.md` is writable.
+
+<!-- benchmark:start -->
+- Metric: `balanced_accuracy` (`maximize`)
+- Total logged runs: `15`
+- Best full: not run yet
+- Best smoke: `0.969515` via `catboost_v12` (`ran`; run `20260428-000410-dirty`)
+- Last updated: 2026-04-27 22:21 UTC
+<!-- benchmark:end -->
 
 Playground Series - Season 6 Episode 4
 Predicting Irrigation Need
@@ -60,4 +72,3 @@ Files
     train.csv - the training set, with Irrigation_Need as target
     test.csv - the test set, used to predict the category for Irrigation_Need
     sample_submission.csv - a sample submission file in the correct format
-

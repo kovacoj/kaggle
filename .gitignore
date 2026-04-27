@@ -1,6 +1,8 @@
 # Virtual environments
 .venv/
 venv/
+venv # even as a file for symlinks
+.venv
 
 # Local environment files
 .env

@@ -1,0 +1,29 @@
+# Virtual environments
+.venv/
+venv/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Python caches and tooling state
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Coverage output
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Repo-local agent instructions
+AGENTS.md
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

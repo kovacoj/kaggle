@@ -56,51 +56,86 @@ def main() -> None:
     valid_frame = load_benchmark_part(args.benchmark, "valid")
 
     started_at = time.time()
-    validation_predictions = experiment.fit_predict_valid(train_frame, valid_frame, args.benchmark)
-    validate_prediction_contract(validation_predictions)
+    try:
+        validation_predictions = experiment.fit_predict_valid(train_frame, valid_frame, args.benchmark)
+        validate_prediction_contract(validation_predictions)
 
-    experiment_runs_dir = EXPERIMENT_RUNS_DIR
-    experiment_runs_dir.mkdir(parents=True, exist_ok=True)
-    validation_path = experiment_runs_dir / f"{run_id}-{args.benchmark}.csv"
-    validation_predictions.write_csv(validation_path)
+        experiment_runs_dir = EXPERIMENT_RUNS_DIR
+        experiment_runs_dir.mkdir(parents=True, exist_ok=True)
+        validation_path = experiment_runs_dir / f"{run_id}-{args.benchmark}.csv"
+        validation_predictions.write_csv(validation_path)
 
-    metrics = score_prediction_frame(validation_predictions, args.benchmark)
-    metric_value = float(metrics[METRIC_NAME])
+        metrics = score_prediction_frame(validation_predictions, args.benchmark)
+        metric_value = float(metrics[METRIC_NAME])
 
-    submission_file = "-"
-    if args.write_submission:
-        submission_file = write_submission(run_id)
+        submission_file = "-"
+        if args.write_submission:
+            submission_file = write_submission(run_id)
 
-    runtime_seconds = time.time() - started_at
+        runtime_seconds = time.time() - started_at
 
-    summary = {
-        "run_id": run_id,
-        "commit": commit,
-        "working_tree_dirty": working_tree_dirty,
-        "benchmark": args.benchmark,
-        "approach": experiment.APPROACH,
-        "metric_name": METRIC_NAME,
-        "metric_direction": METRIC_DIRECTION,
-        "metric_value": metric_value,
-        "runtime_seconds": runtime_seconds,
-        "metrics": metrics,
-        "experiment": experiment.DESCRIPTION,
-        "description": description,
-        "validation_predictions": str(validation_path.relative_to(PROJECT_ROOT)),
-        "submission_file": submission_file,
-    }
-    snapshot_dir = archive_run(run_id, summary, validation_path, submission_file)
-    append_result(
-        run_id=run_id,
-        commit=commit,
-        benchmark=args.benchmark,
-        approach=experiment.APPROACH,
-        metric_value=metric_value,
-        runtime_seconds=runtime_seconds,
-        status="ran",
-        description=description,
-        snapshot=str(snapshot_dir.relative_to(PROJECT_ROOT)),
-    )
+        summary = {
+            "run_id": run_id,
+            "commit": commit,
+            "working_tree_dirty": working_tree_dirty,
+            "benchmark": args.benchmark,
+            "approach": experiment.APPROACH,
+            "metric_name": METRIC_NAME,
+            "metric_direction": METRIC_DIRECTION,
+            "metric_value": metric_value,
+            "runtime_seconds": runtime_seconds,
+            "metrics": metrics,
+            "experiment": experiment.DESCRIPTION,
+            "description": description,
+            "validation_predictions": str(validation_path.relative_to(PROJECT_ROOT)),
+            "submission_file": submission_file,
+            "status": "ran",
+        }
+        snapshot_dir = archive_run(run_id, summary, validation_path, submission_file)
+        append_result(
+            run_id=run_id,
+            commit=commit,
+            benchmark=args.benchmark,
+            approach=experiment.APPROACH,
+            metric_value=metric_value,
+            runtime_seconds=runtime_seconds,
+            status="ran",
+            description=description,
+            snapshot=str(snapshot_dir.relative_to(PROJECT_ROOT)),
+        )
+    except Exception as exc:
+        runtime_seconds = time.time() - started_at
+        summary = {
+            "run_id": run_id,
+            "commit": commit,
+            "working_tree_dirty": working_tree_dirty,
+            "benchmark": args.benchmark,
+            "approach": experiment.APPROACH,
+            "metric_name": METRIC_NAME,
+            "metric_direction": METRIC_DIRECTION,
+            "metric_value": None,
+            "runtime_seconds": runtime_seconds,
+            "metrics": {},
+            "experiment": experiment.DESCRIPTION,
+            "description": description,
+            "validation_predictions": "-",
+            "submission_file": "-",
+            "status": "crash",
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+        snapshot_dir = archive_run(run_id, summary, None, "-")
+        append_result(
+            run_id=run_id,
+            commit=commit,
+            benchmark=args.benchmark,
+            approach=experiment.APPROACH,
+            metric_value=float("nan"),
+            runtime_seconds=runtime_seconds,
+            status="crash",
+            description=description,
+            snapshot=str(snapshot_dir.relative_to(PROJECT_ROOT)),
+        )
+        raise
 
     print("---")
     print(f"run_id:                 {run_id}")
@@ -174,15 +209,16 @@ def build_run_id(commit: str, dirty: bool) -> str:
     return f"{timestamp}-{suffix}"
 
 
-def archive_run(run_id: str, summary: dict[str, object], validation_path: Path, submission_file: str) -> Path:
+def archive_run(run_id: str, summary: dict[str, object], validation_path: Path | None, submission_file: str) -> Path:
     run_dir = HISTORY_DIR / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
 
     files_to_copy = [
         PROJECT_ROOT / "src" / "experiment.py",
-        validation_path,
         PROJECT_ROOT / "artifacts" / "data_profile.md",
     ]
+    if validation_path is not None:
+        files_to_copy.append(validation_path)
     if submission_file != "-":
         files_to_copy.append(PROJECT_ROOT / submission_file)
 

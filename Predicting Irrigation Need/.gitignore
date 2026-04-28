@@ -1,0 +1,15 @@
+results.tsv
+history/*
+!history/README.md
+logs/*
+!logs/README.md
+submissions/*
+!submissions/README.md
+artifacts/data_profile.md
+artifacts/benchmark_summary.md
+artifacts/progress.png
+artifacts/approach_memory.md
+artifacts/experiment_runs/*
+!artifacts/experiment_runs/README.md
+src/__pycache__/
+.ipynb_checkpoints/

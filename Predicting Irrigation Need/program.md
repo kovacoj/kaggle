@@ -94,38 +94,42 @@ uv run python src/analyze_results.py
 Repeat until interrupted:
 
 1. Re-read `artifacts/data_profile.md` and `artifacts/approach_memory.md` — compare the best scores there against your new idea to avoid repeating discarded approaches.
-2. Check `artifacts/ideas.md` for untried experiment ideas. Pick one or add your own. Mark it `[tried]` when you start.
-2. Make one experiment-sized change in `src/experiment.py`.
+2. Check `artifacts/ideas.md` for untried experiment ideas. Pick one or add your own.
+3. If you add a new idea, log it in `artifacts/ideas.md` before coding with a short hypothesis and the signal you expect.
+4. Mark the chosen idea `[tried]` when you start, and append a short outcome note after the run so the next agent can build on the result.
+5. Make one experiment-sized change in `src/experiment.py`.
    Update `experiment.APPROACH` and `experiment.DESCRIPTION` so the idea is logged clearly.
-3. Create a commit for that candidate.
-4. Run the harness with a short note:
+6. Create a commit for that candidate.
+7. Run the harness with a short note:
 
 ```bash
 EXPERIMENT_DESCRIPTION="your idea here" uv run python src/evaluate.py --benchmark smoke > logs/run.log 2>&1
 ```
 
-5. Extract the summary:
+8. Extract the summary:
 
 ```bash
 rg "^(run_id|benchmark|metric_name|metric_direction|metric_value|runtime_seconds|validation_predictions|submission_file|experiment|description|snapshot):" logs/run.log
 ```
 
-6. If the summary is missing, inspect the crash:
+9. If the summary is missing, inspect the crash:
 
 ```bash
 tail -n 50 logs/run.log
 ```
 
-7. Review the auto-recorded row in `results.tsv` and the archived snapshot in `history/<run_id>/`.
-8. Update the `status` in `results.tsv` to `keep`, `discard`, or `crash` after the decision.
-9. Refresh the analysis outputs, approach memory, and ideas:
+10. Review the auto-recorded row in `results.tsv` and the archived snapshot in `history/<run_id>/`.
+11. Update the `status` in `results.tsv` to `keep`, `discard`, or `crash` after the decision.
+
+12. Add a short dated note to `DIARY.md` when the run changes direction, confirms a strong result, or teaches you something reusable.
+13. Refresh the analysis outputs, approach memory, and ideas:
 
 ```bash
 uv run python src/analyze_results.py
 ```
 
-10. If a `smoke` result looks promising, confirm it on `full` before treating it as the new headline benchmark.
-11. Keep the commit only if the benchmark improved enough to justify the complexity.
+14. If a `smoke` result looks promising, confirm it on `full` before treating it as the new headline benchmark.
+15. Keep the commit only if the benchmark improved enough to justify the complexity.
 
 ## Output Contract
 
@@ -166,6 +170,14 @@ It also writes `history/<run_id>/summary.json` and copies the exact `src/experim
 - recent runs with their evaluation outcomes
 
 Read it before the next iteration so the agent can build on prior wins and avoid repeating the same mistake.
+
+## Idea Logging Rules
+
+- `artifacts/ideas.md` is the handoff file for future agents. Add ideas before implementation, not after.
+- Every idea entry should include four things: status, short hypothesis, expected signal, and outcome note.
+- Mark ideas `[tried]` as soon as execution starts, even if the run later crashes.
+- If a run crashes or underperforms, record the failure mode in the idea note so the next agent does not repeat it blindly.
+- If a run works, record what likely caused the gain so the next agent can extend it instead of rediscovering it.
 
 ## README Benchmark Block
 

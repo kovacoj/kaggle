@@ -1,0 +1,15 @@
+{
+  "version": "holdout_v1",
+  "metric": "balanced_accuracy",
+  "seed": 42,
+  "valid_fraction": 0.2,
+  "smoke_train_rows": 80000,
+  "smoke_valid_rows": 20000,
+  "target": "Irrigation_Need",
+  "id_column": "id",
+  "labels": [
+    "Low",
+    "Medium",
+    "High"
+  ]
+}

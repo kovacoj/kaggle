@@ -17,6 +17,9 @@ The key difference from LLM training repos is that the agent must understand the
 - `src/baseline_catboost.py` — reference baseline, not the default experiment surface.
 - `src/leaderboard.py` — ranks prediction CSVs already written under `artifacts/`.
 - `src/analyze_results.py` — refreshes benchmark summaries, progress plots, and approach memory from `results.tsv`.
+- `src/bootstrap.py` — creates the initial data/profile/memory artifacts when they are missing.
+- `src/results.py` — updates the run decision in `results.tsv` after review.
+- `src/notes.py` — updates `artifacts/ideas.md` and `DIARY.md` using the agreed handoff format.
 - `results.tsv` — auto-appended experiment log.
 - `history/` — archived per-run snapshots.
 - `artifacts/approach_memory.md` — generated memory of tried approaches and their outcomes.
@@ -52,20 +55,26 @@ uv run python src/benchmark.py describe
 uv run python src/profile_data.py > logs/profile.log 2>&1
 ```
 
-7. Read `artifacts/data_profile.md`, `artifacts/approach_memory.md`, and `artifacts/ideas.md` before changing `src/experiment.py`.
-8. Run the baseline once on `smoke`:
+7. If the workflow memory files are missing, bootstrap them once:
+
+```bash
+uv run python src/bootstrap.py
+```
+
+8. Read `artifacts/data_profile.md`, `artifacts/approach_memory.md`, and `artifacts/ideas.md` before changing `src/experiment.py`.
+9. Run the baseline once on `smoke`:
 
 ```bash
 EXPERIMENT_DESCRIPTION="baseline" uv run python src/evaluate.py --benchmark smoke > logs/baseline.log 2>&1
 ```
 
-9. Read the summary lines from the log:
+10. Read the summary lines from the log:
 
 ```bash
 rg "^(run_id|benchmark|metric_name|metric_direction|metric_value|runtime_seconds|validation_predictions|submission_file|experiment|description|snapshot):" logs/baseline.log
 ```
 
-10. Refresh the analysis outputs, approach memory, and README benchmark block:
+11. Refresh the analysis outputs, approach memory, and README benchmark block:
 
 ```bash
 uv run python src/analyze_results.py
@@ -94,38 +103,69 @@ uv run python src/analyze_results.py
 Repeat until interrupted:
 
 1. Re-read `artifacts/data_profile.md` and `artifacts/approach_memory.md` — compare the best scores there against your new idea to avoid repeating discarded approaches.
-2. Check `artifacts/ideas.md` for untried experiment ideas. Pick one or add your own. Mark it `[tried]` when you start.
-2. Make one experiment-sized change in `src/experiment.py`.
+2. Check `artifacts/ideas.md` for untried experiment ideas. Pick one or add your own.
+3. If you add a new idea, log it before coding:
+
+```bash
+uv run python src/notes.py add-idea "idea title" "why this may work" "what signal to expect"
+```
+
+4. Mark the chosen idea `[tried]` when you start:
+
+```bash
+uv run python src/notes.py start-idea "idea title"
+```
+
+5. After the run, append a short outcome note so the next agent can build on the result:
+
+```bash
+uv run python src/notes.py note-idea "idea title" "improved smoke by 0.003, likely from better High recall"
+```
+
+6. Make one experiment-sized change in `src/experiment.py`.
    Update `experiment.APPROACH` and `experiment.DESCRIPTION` so the idea is logged clearly.
-3. Create a commit for that candidate.
-4. Run the harness with a short note:
+7. Create a commit for that candidate.
+8. Run the harness with a short note:
 
 ```bash
 EXPERIMENT_DESCRIPTION="your idea here" uv run python src/evaluate.py --benchmark smoke > logs/run.log 2>&1
 ```
 
-5. Extract the summary:
+9. Extract the summary:
 
 ```bash
 rg "^(run_id|benchmark|metric_name|metric_direction|metric_value|runtime_seconds|validation_predictions|submission_file|experiment|description|snapshot):" logs/run.log
 ```
 
-6. If the summary is missing, inspect the crash:
+10. If the summary is missing, inspect the crash:
 
 ```bash
 tail -n 50 logs/run.log
 ```
 
-7. Review the auto-recorded row in `results.tsv` and the archived snapshot in `history/<run_id>/`.
-8. Update the `status` in `results.tsv` to `keep`, `discard`, or `crash` after the decision.
-9. Refresh the analysis outputs, approach memory, and ideas:
+11. Review the auto-recorded row in `results.tsv` and the archived snapshot in `history/<run_id>/`.
+12. Update the run status after the decision:
+
+```bash
+uv run python src/results.py <run_id> keep
+```
+
+Use `keep`, `discard`, or `crash`.
+
+13. Add a short dated diary note when the run changes direction, confirms a strong result, or teaches you something reusable:
+
+```bash
+uv run python src/notes.py add-diary "what changed and why" "run <run_id> scored ..." "keep" "best follow-up idea"
+```
+
+14. Refresh the analysis outputs, approach memory, and ideas:
 
 ```bash
 uv run python src/analyze_results.py
 ```
 
-10. If a `smoke` result looks promising, confirm it on `full` before treating it as the new headline benchmark.
-11. Keep the commit only if the benchmark improved enough to justify the complexity.
+15. If a `smoke` result looks promising, confirm it on `full` before treating it as the new headline benchmark.
+16. Keep the commit only if the benchmark improved enough to justify the complexity.
 
 ## Output Contract
 
@@ -166,6 +206,15 @@ It also writes `history/<run_id>/summary.json` and copies the exact `src/experim
 - recent runs with their evaluation outcomes
 
 Read it before the next iteration so the agent can build on prior wins and avoid repeating the same mistake.
+
+## Idea Logging Rules
+
+- `artifacts/ideas.md` is the handoff file for future agents. Add ideas before implementation, not after.
+- Every idea entry should include four things: status, short hypothesis, expected signal, and outcome note.
+- Mark ideas `[tried]` as soon as execution starts, even if the run later crashes.
+- If a run crashes or underperforms, record the failure mode in the idea note so the next agent does not repeat it blindly.
+- If a run works, record what likely caused the gain so the next agent can extend it instead of rediscovering it.
+- Use `src/notes.py` instead of manually editing `artifacts/ideas.md` or `DIARY.md` when possible so the format stays consistent.
 
 ## README Benchmark Block
 

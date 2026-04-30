@@ -1,15 +1,17 @@
 # Predicting Irrigation Need
 
+> **Competition ended** — April 30, 2026. Best confirmed score: **0.970934** balanced accuracy (`catboost_v35`). See the [approach walkthrough notebook](https://github.com/kovacoj/kaggle/blob/comp/irrigation/Predicting%20Irrigation%20Need/notebooks/approach_walkthrough.ipynb) for the full analysis.
+
 ## Current Benchmark
 
 This section should stay short and factual. `src/analyze_results.py` can refresh it from `results.tsv` when `README.md` is writable.
 
 <!-- benchmark:start -->
 - Metric: `balanced_accuracy` (`maximize`)
-- Total logged runs: `15`
-- Best full: not run yet
-- Best smoke: `0.969515` via `catboost_v12` (`ran`; run `20260428-000410-dirty`)
-- Last updated: 2026-04-27 22:21 UTC
+- Total logged runs: `18`
+- Best full: `0.970934` via `catboost_v35` (`keep`; run `20260429-122419-dirty`)
+- Best smoke: `0.970778` via `catboost_v40` (`ran`; run `20260430-085946-dirty`)
+- Last updated: 2026-04-30 11:23 UTC
 <!-- benchmark:end -->
 
 Playground Series - Season 6 Episode 4

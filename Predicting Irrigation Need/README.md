@@ -1,5 +1,7 @@
 # Predicting Irrigation Need
 
+> **Competition ended** — April 30, 2026. Best confirmed score: **0.970934** balanced accuracy (`catboost_v35`). See the [approach walkthrough notebook](https://github.com/kovacoj/kaggle/blob/comp/irrigation/Predicting%20Irrigation%20Need/notebooks/approach_walkthrough.ipynb) for the full analysis.
+
 ## Current Benchmark
 
 This section should stay short and factual. `src/analyze_results.py` can refresh it from `results.tsv` when `README.md` is writable.
